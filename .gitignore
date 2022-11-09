@@ -1,16 +1,11 @@
-# Prerequisites
-*.d
+# IDE configuration files
+/.vscode
 
 # Object files
 *.o
 *.ko
 *.obj
 *.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
 
 # Precompiled Headers
 *.gch
@@ -38,15 +33,15 @@
 
 # Debug files
 *.dSYM/
-*.su
-*.idb
-*.pdb
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Project binary files
+/bin/*
+!/bin/.gitkeep
+
+# Project object files
+/lib/*
+!/lib/.gitkeep
+
+# Project logs files
+/log/*
+!/log/.gitkeep
