@@ -16,7 +16,7 @@ void* customer_run(void* arg) {
         3.  O CLIENTE SÓ PODERÁ PEGAR UM PRATO QUANDO A ESTEIRA ESTIVER PARADA.
         4.  O CLIENTE SÓ PEGARÁ PRATOS CASO ELE DESEJE-OS, INFORMAÇÃO CONTIDA NO ARRAY self->_wishes[...].
         5.  APÓS CONSUMIR TODOS OS PRATOS DESEJADOS, O CLIENTE DEVERÁ SAIR IMEDIATAMENTE DA ESTEIRA.
-        6.  QUANTO O RESTAURANTE FECHAR, O CLIENTE DEVERÁ SAIR IMEDIATAMENTE DA ESTEI 
+        6.  QUANTO O RESTAURANTE FECHAR, O CLIENTE DEVERÁ 
         7.  CASO O CLIENTE ESTEJA COMENDO QUANDO O SUSHI SHOP FECHAR, ELE DEVE TERMINAR DE COMER E EM SEGUIDA
             SAIR IMEDIATAMENTE DA ESTEIRA.
         8.  LEMBRE-SE DE TOMAR CUIDADO COM ERROS DE CONCORRÊNCIA!
@@ -24,19 +24,25 @@ void* customer_run(void* arg) {
     customer_t* self = (customer_t*)arg;
     /* INSIRA SUA LÓGICA AQUI */
 
-    /* ALTERAÇÃO teste */
+    // Espera ser colocado em um assento: self->_seat_position != -1
     while (self->_seat_position == -1) {};
-    //printf("\nseat_position: %d\n", self->_seat_position);
-    /* ALTERAÇÃO */
 
+    conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
 
+    // Espera a esteira parar: assim que liberar o mutex
+    while (TRUE) {
+        pthread_mutex_lock(&conveyor_belt->_food_slots_mutex);
+        // printf("\nCliente %d pegou mutex na esteira de comida\n", self->_id);
+        customer_pick_food(self, self->_seat_position, conveyor_belt);
+        // pthread_mutex_unlock(&conveyor_belt->_food_slots_mutex);
+        msleep(5000); // por enquanto esta favorecendo o programa
+    }
 
-
-    msleep(1000000);  // REMOVA ESTE SLEEP APÓS IMPLEMENTAR SUA SOLUÇÃO!
+    // msleep(1000000);  // REMOVA ESTE SLEEP APÓS IMPLEMENTAR SUA SOLUÇÃO!
     pthread_exit(NULL);
 }
 
-void customer_pick_food(int food_slot) {
+void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* conveyor_belt) {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO CLIENTE.
         NOTAS:
@@ -48,7 +54,26 @@ void customer_pick_food(int food_slot) {
         5.  NOTE QUE CLIENTES ADJACENTES DISPUTARÃO OS MESMOS PRATOS. CUIDADO COM PROBLEMAS DE SINCRONIZAÇÃO!
     */
 
-    /* INSIRA SUA LÓGICA AQUI */
+    // printf("Funcao pick_food(), food_slot = %d\n", food_slot);
+    int food = -2;
+    for (int i = (food_slot - 1); i <= food_slot + 1; i++) {
+        if (i == 0 || i == conveyor_belt->_size) {
+            // para evitar acessos ao slot do chef e à posição além da esteira
+            continue;
+        }
+        food = conveyor_belt->_food_slots[i]; // pega conteudo desta posição da esteira
+        if (food != -1 && self->_wishes[food]) {
+            // se houver comida e ela estiver na lista de desejos
+            // tirar item da esteira
+            conveyor_belt->_food_slots[i] = -1; // deve-se usar o setter?
+            // libera o mutex da esteira de comida
+            pthread_mutex_unlock(&conveyor_belt->_food_slots_mutex);
+            // comer
+            customer_eat(self, food);
+            return;
+        }
+    }
+    pthread_mutex_unlock(&conveyor_belt->_food_slots_mutex);
 }
 
 void customer_eat(customer_t* self, enum menu_item food) {
@@ -63,6 +88,10 @@ void customer_eat(customer_t* self, enum menu_item food) {
     */
 
     /* INSIRA SUA LÓGICA AQUI */
+
+    // decrementa item da lista de desejos
+    self->_wishes[food] -= 1;
+    printf("Cliente %d, wishes: %d, %d, %d, %d, %d\n", self->_id, self->_wishes[0], self->_wishes[1], self->_wishes[2], self->_wishes[3], self->_wishes[4]);
 
     /* NÃO EDITE O CONTEÚDO ABAIXO */
     virtual_clock_t* global_clock = globals_get_virtual_clock();
@@ -133,7 +162,7 @@ customer_t* customer_init() {
     self->_seat_position = -1;
     pthread_create(&self->thread, NULL, customer_run, (void*)self);
     /* Alteração */
-    print_customer(self);
+    // print_customer(self);
     return self;
 }
 
