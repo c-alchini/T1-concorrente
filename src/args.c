@@ -5,32 +5,32 @@
 #include "args.h"
 
 
-config_t parse(int argc, char **argv) {
+config_t parse(int argc, char** argv) {
     int c;
     config_t config = { 1, 20, 10, 18, 15 };
 
     while ((c = getopt(argc, argv, "c:b:s:o:x:m:h")) != -1) {
         switch (c) {
-            case 'c':
-                config.sushi_chefs = atoi(optarg);
-                break;
-            case 'b':
-                config.conveyor_belt_capacity = atoi(optarg);
-                break;
-            case 'o':
-                config.opening_time = atoi(optarg);
-                break;
-            case 'x':
-                config.closing_time = atoi(optarg);
-                break;
-            case 'm':
-                config.clock_speed_multiplier = atoi(optarg);
-                break;
-            case 'h':
-                help(argv);
-                exit(EXIT_SUCCESS);
-            default:
-                exit(EXIT_FAILURE);
+        case 'c':
+            config.sushi_chefs = atoi(optarg);
+            break;
+        case 'b':
+            config.conveyor_belt_capacity = atoi(optarg);
+            break;
+        case 'o':
+            config.opening_time = atoi(optarg);
+            break;
+        case 'x':
+            config.closing_time = atoi(optarg);
+            break;
+        case 'm':
+            config.clock_speed_multiplier = atoi(optarg);
+            break;
+        case 'h':
+            help(argv);
+            exit(EXIT_SUCCESS);
+        default:
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -42,7 +42,7 @@ config_t parse(int argc, char **argv) {
         abort = TRUE;
     }
 
-    if (config.conveyor_belt_capacity < 10) {
+    if (config.conveyor_belt_capacity < 4) { // ALTERAR, orignal: 10
         fprintf(stdout, BROWN "[ABORTING] The conveyor belt capacity (-b) must not be lower than 10.\n" NO_COLOR);
         abort = TRUE;
     }

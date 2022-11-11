@@ -29,16 +29,24 @@ void* customer_run(void* arg) {
 
     conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
 
-    // Espera a esteira parar: assim que liberar o mutex
-    while (TRUE) {
-        pthread_mutex_lock(&conveyor_belt->_food_slots_mutex);
-        // printf("\nCliente %d pegou mutex na esteira de comida\n", self->_id);
-        customer_pick_food(self, self->_seat_position, conveyor_belt);
-        // pthread_mutex_unlock(&conveyor_belt->_food_slots_mutex);
-        msleep(5000); // por enquanto esta favorecendo o programa
-    }
+    int stop = 0;
+    while (!stop) {
+        // Confere se a lista de desejos está vazia
+        stop = 1;
+        for (int i = 0; i < 5; i++) {
+            if (self->_wishes[i]) {
+                stop = 0;
+                break;
+            }
+        }
 
-    // msleep(1000000);  // REMOVA ESTE SLEEP APÓS IMPLEMENTAR SUA SOLUÇÃO!
+        // Espera a esteira parar: assim que liberar o mutex
+        pthread_mutex_lock(&conveyor_belt->_food_slots_mutex);
+        customer_pick_food(self, self->_seat_position, conveyor_belt);
+        // msleep(3000); // por enquanto, favorece a dinamica do programa
+
+    }
+    printf("\n *********** Cliente %d terminou de comer *********** \n", self->_id);
     pthread_exit(NULL);
 }
 
@@ -157,7 +165,7 @@ customer_t* customer_init() {
     }
     self->_id = rand() % 1000;
     for (int i = 0; i <= 4; i++) {
-        self->_wishes[i] = (rand() % 4);
+        self->_wishes[i] = 1; // original: (rand() % 4); -> para testes
     }
     self->_seat_position = -1;
     pthread_create(&self->thread, NULL, customer_run, (void*)self);
