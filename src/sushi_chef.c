@@ -5,7 +5,7 @@
 #include "globals.h"
 #include "menu.h"
 
-
+// Possível alteração: conferir horário durante execução para finalizar o run
 void* sushi_chef_run(void* arg) {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO SUSHI CHEF.
@@ -20,12 +20,26 @@ void* sushi_chef_run(void* arg) {
     virtual_clock_t* global_clock = globals_get_virtual_clock();
 
     sushi_chef_seat(self);
+    
+    //POSSIVEL ALTERAÇÃO: Fazer o chef preparar e colocar comida enquanto o tempo atual não for o tempo de fechar
+    /*
+        while(global_clock -> current_time != global_clock -> closing_time) {
+            enum menu_item next_dish = rand() % 5;
+            sushi_chef_prepare_food(self, next_dish);
+            sushi_chef_place_food(self, next_dish);
+        }
+    */
+    
     while (TRUE) {
         enum menu_item next_dish = rand() % 5;
         sushi_chef_prepare_food(self, next_dish);
         sushi_chef_place_food(self, next_dish);
     }
-
+    
+    //Ao invés de fazer pthread_exit, o run deveria ir para sushi_chef_leave e lá fazer o exit?
+    //sushi_chef_leave();
+    //Como ele voltaria para o Join? A função init precisaria chamar Chef_finalize?
+    
     pthread_exit(NULL);
 }
 
@@ -70,6 +84,7 @@ void sushi_chef_seat(sushi_chef_t* self) {
     // }
 }
 
+//Possível Alteração: Função chamada por chef_run(). Chef sai do assento 0 e deixa -1
 void sushi_chef_leave(sushi_chef_t* self) {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO SUSHI CHEF.
@@ -81,6 +96,12 @@ void sushi_chef_leave(sushi_chef_t* self) {
     conveyor_belt_t* conveyor = globals_get_conveyor_belt();
 
     /* INSIRA SUA LÓGICA AQUI */
+    
+    /*
+    pthread_mutex_lock(&conveyor->_seats_mutex);
+    conveyor->_seats[0] = -1;
+    pthread_mutex_unlock(&conveyor->_seats_mutex);
+    */
 
     print_virtual_time(globals_get_virtual_clock());
     fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d seated at conveyor->_seats[%d] stopped cooking and left the shop!\n", self->_id, self->_seat_position);
