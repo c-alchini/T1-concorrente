@@ -16,7 +16,7 @@ void* customer_run(void* arg) {
         3.  O CLIENTE SÓ PODERÁ PEGAR UM PRATO QUANDO A ESTEIRA ESTIVER PARADA.
         4.  O CLIENTE SÓ PEGARÁ PRATOS CASO ELE DESEJE-OS, INFORMAÇÃO CONTIDA NO ARRAY self->_wishes[...].
         5.  APÓS CONSUMIR TODOS OS PRATOS DESEJADOS, O CLIENTE DEVERÁ SAIR IMEDIATAMENTE DA ESTEIRA.
-        6.  QUANTO O RESTAURANTE FECHAR, O CLIENTE DEVERÁ 
+        6.  QUANTO O RESTAURANTE FECHAR, O CLIENTE DEVERÁ SAIR IMEDIATAMENTE DA ESTEIRA.
         7.  CASO O CLIENTE ESTEJA COMENDO QUANDO O SUSHI SHOP FECHAR, ELE DEVE TERMINAR DE COMER E EM SEGUIDA
             SAIR IMEDIATAMENTE DA ESTEIRA.
         8.  LEMBRE-SE DE TOMAR CUIDADO COM ERROS DE CONCORRÊNCIA!
@@ -47,7 +47,9 @@ void* customer_run(void* arg) {
 
     }
     printf("\n *********** Cliente %d terminou de comer *********** \n", self->_id);
-    pthread_exit(NULL);
+    customer_leave(self);
+
+    //pthread_exit(NULL);
 }
 
 void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* conveyor_belt) {
@@ -62,6 +64,7 @@ void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* convey
         5.  NOTE QUE CLIENTES ADJACENTES DISPUTARÃO OS MESMOS PRATOS. CUIDADO COM PROBLEMAS DE SINCRONIZAÇÃO!
     */
 
+    // print_customer(self);
     // printf("Funcao pick_food(), food_slot = %d\n", food_slot);
     int food = -2;
     for (int i = (food_slot - 1); i <= food_slot + 1; i++) {
@@ -81,6 +84,7 @@ void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* convey
             return;
         }
     }
+    // não encontrou a comida desejada
     pthread_mutex_unlock(&conveyor_belt->_food_slots_mutex);
 }
 
@@ -153,7 +157,14 @@ void customer_leave(customer_t* self) {
     */
     conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
 
-    /* INSIRA SUA LÓGICA AQUI */
+    // tira o cliente da esteira
+    pthread_mutex_lock(&conveyor_belt->_seats_mutex); // -> precisa desse mutex?
+    conveyor_belt->_seats[self->_seat_position] = -1;
+    pthread_mutex_unlock(&conveyor_belt->_seats_mutex);
+
+    // cliente vai embora
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the restaurant!\n", self->_id);
+    customer_finalize(self);
 }
 
 customer_t* customer_init() {
@@ -165,12 +176,10 @@ customer_t* customer_init() {
     }
     self->_id = rand() % 1000;
     for (int i = 0; i <= 4; i++) {
-        self->_wishes[i] = 1; // original: (rand() % 4); -> para testes
+        self->_wishes[i] = 1; // alterar: (rand() % 4); -> para testes
     }
     self->_seat_position = -1;
     pthread_create(&self->thread, NULL, customer_run, (void*)self);
-    /* Alteração */
-    // print_customer(self);
     return self;
 }
 
