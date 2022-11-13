@@ -32,11 +32,31 @@ int main(int argc, char** argv) {
     hostess_t* hostess = hostess_init();
 
     /* Join threads and free used memory */
+    // Espera hotess finalizar
     hostess_finalize(hostess);
+
+    // Espera chef finalizar
     sushi_chef_finalize(sushi_chef);
 
+    // Confere se ainda restam cliente na esteira
+    conveyor_belt_t* conveyor = globals_get_conveyor_belt();
+
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Conferindo se ainda restam clientes sentados...\n");
+
+    while (TRUE) {
+        for (int i = 0; i < conveyor->_size; i++) {
+            if (conveyor->_seats[i] != -1) {
+                break;
+            }
+        }
+        break;
+    }
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Todos os clientes foram embora!\n");
+
+    // Encerrando Esteira e Relogio
     globals_finalize();
-    printf("fim da main\n");
+
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Restaurante encerrado.\n");
 
     return EXIT_SUCCESS;
 }

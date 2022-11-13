@@ -33,7 +33,6 @@ void* conveyor_belt_run(void* arg) {
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Conveyor belt finished moving...\n");
         print_conveyor_belt(self);
     }
-    printf("thread conveyor run: exit\n");
     pthread_exit(NULL);
 }
 
@@ -63,7 +62,7 @@ void conveyor_belt_finalize(conveyor_belt_t* self) {
     pthread_join(self->thread, NULL);
     pthread_mutex_destroy(&self->_seats_mutex);
     pthread_mutex_destroy(&self->_food_slots_mutex);
-    printf("tentando desalocar conveyor\n");
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Desligando Conveyor...\n");
     free(self->_seats);
     free(self->_food_slots);
     free(self);

@@ -58,10 +58,9 @@ void* customer_run(void* arg) {
         customer_pick_food(self, self->_seat_position, conveyor_belt);
     }
 
-    // printf("\n *********** Cliente %d terminou de comer *********** \n", self->_id);
     customer_leave(self);
 
-    //pthread_exit(NULL);
+    // pthread_exit(NULL);
 }
 
 void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* conveyor_belt) {
@@ -173,12 +172,12 @@ void customer_leave(customer_t* self) {
 
     // tira o cliente da esteira
     pthread_mutex_lock(&conveyor_belt->_seats_mutex); // -> precisa desse mutex? RUAN: Sim, o hostess poderia alterar o valor do seat do conveyor caso não tivesse mutex
+    print_virtual_time(globals_get_virtual_clock());
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the restaurant!\n", self->_id);
     conveyor_belt->_seats[self->_seat_position] = -1;
     pthread_mutex_unlock(&conveyor_belt->_seats_mutex);
 
     // cliente vai embora
-    print_virtual_time(globals_get_virtual_clock());
-    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the restaurant!\n", self->_id);
     customer_finalize(self);
 }
 

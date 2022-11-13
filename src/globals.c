@@ -48,10 +48,10 @@ queue_t* globals_get_queue() {
 
 /**
  * @brief Finaliza todas as variáveis globais.
- * Se criar alguma variável global que faça uso de mallocs, lembre-se sempre 
+ * Se criar alguma variável global que faça uso de mallocs, lembre-se sempe 
  * de usar o free dentro dessa função.
  */
 void globals_finalize() {
-    virtual_clock_finalize(global_virtual_clock);
     conveyor_belt_finalize(global_conveyor_belt);
+    virtual_clock_finalize(global_virtual_clock);
 }

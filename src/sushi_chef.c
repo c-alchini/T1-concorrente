@@ -18,7 +18,7 @@ void* sushi_chef_run(void* arg) {
         NOTAS:
         1.  O SUSHI CHEF SÓ PODE COMEÇAR A COZINHAR DEPOIS QUE ESTIVER POSICIONADO NA ESTEIRA.
         2.  ESSA FUNÇÃO JÁ POSSUI A LÓGICA PARA QUE O SUSHI CHEF COMECE A PREPARAR PRATOS ALEATÓRIOS.
-        3.  VOCÊ DEVE ADICIONAR A LÓGICA PARA QUE O SUSHI CHEF PARE DE ADICIONAR PRATOS E SAA 
+        3.  VOCÊ DEVE ADICIONAR A LÓGICA PARA QUE O SUSHI CHEF PARE DE ADICIONAR PRA 
             ESTEIRA QUANDO O SUSHI SHOP FECHAR (VEJA O ARQUIVO `virtual_clock.c`).
         4.  CUIDADO COM ERROS DE CONCORRÊNCIA.
     */
@@ -93,9 +93,9 @@ void sushi_chef_leave(sushi_chef_t* self) {
 
     /* INSIRA SUA LÓGICA AQUI */
 
-    // pthread_mutex_lock(&conveyor->_seats_mutex);
+    pthread_mutex_lock(&conveyor->_seats_mutex);
     conveyor->_seats[0] = -1;
-    // pthread_mutex_unlock(&conveyor->_seats_mutex);
+    pthread_mutex_unlock(&conveyor->_seats_mutex);
 
     print_virtual_time(globals_get_virtual_clock());
     fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d seated at conveyor->_seats[%d] stopped cooking and left the shop!\n", self->_id, self->_seat_position);
@@ -124,7 +124,7 @@ void sushi_chef_place_food(sushi_chef_t* self, enum menu_item dish) {
     // Espera o mutex ser liberado, indicando que a esteira não está rodando
     while (TRUE) {
         if (global_clock->current_time >= global_clock->closing_time) {
-            printf("sushi_chef place_food() return");
+            // caso o tempo tenha acabado, nao coloca o prato na esteira
             return;
         }
         pthread_mutex_lock(&conveyor_belt->_food_slots_mutex);

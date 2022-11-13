@@ -72,7 +72,6 @@ queue_t* queue_init() {
 
 void queue_finalize(queue_t* self) {
     /* NÃO PRECISA ALTERAR ESSA FUNÇÃO */
-    printf("Queue finalize\n");
     struct queue_item* item = NULL;
     for (int i = 0; i < self->_length; i = i + 1) {
         item = self->_first;
@@ -80,14 +79,8 @@ void queue_finalize(queue_t* self) {
         customer_finalize(item->_customer);
         free(item);
     }
-    printf("Queue finalize antes join\n");
-
     pthread_join(self->thread, NULL);
-    printf("Queue finalize apos join\n");
-
     free(self);
-    printf("Queue finalize apos free\n");
-
 }
 
 void print_queue(queue_t* self) {

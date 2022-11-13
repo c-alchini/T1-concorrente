@@ -26,10 +26,9 @@ int hostess_check_for_a_free_conveyor_seat() {
     while (TRUE) {
         for (int i = 0; i < conveyor->_size; i++) {
             if (conveyor->_seats[i] == -1 && i != 0) {  // Atenção à regra! (-1 = livre, 0 = sushi_chef, 1 = customer)
-                // Alteracao: caso o restaurante feche e esse 'for' esteja executando
+                // Alteracao: caso o restaurante feche e esse 'for' esteja executando:
                 // encerrar a execução
                 if (virtual_clock->current_time >= virtual_clock->closing_time) {
-                    printf("Hostess check: return\n");
                     return;
                 }
                 print_virtual_time(globals_get_virtual_clock());
@@ -60,13 +59,20 @@ void hostess_guide_first_in_line_customer_to_conveyor_seat(int seat) {
 
     customer_t* customer = queue_remove(queue);
 
-    // Talvez aqui precise ser feita a verificação sobre se o restaurante fechou
-    // para caso ele feche enquanto esta função estiver sendo chamada
+    // Alteracao:
+    // Talvez aqui precise ser feita a verificação para o caso em que
+    // o restaurante feche enquanto esta função estiver sendo chamada.
+    // A verificação foi colocada dentro do mutex para o caso em que esta thread
+    // estivesse na fila de espera do mutex quando o restaurante fosse fechado.
 
     // precisa desse mutex? (se for apenas o hostess que altera os seats talvez não precise)
     pthread_mutex_lock(&conveyor->_seats_mutex);
     if (virtual_clock->current_time >= virtual_clock->closing_time) {
-        printf("hostess guide: return");
+        // caso o restaurante feche:
+        // - alterar o "seat" do cliente para ele nao ficar em loop infinito (ele vai embora sozinho)
+        // - liberar mutex e retornar desta funcao
+        customer->_seat_position = seat;
+        pthread_mutex_unlock(&conveyor->_seats_mutex);
         return;
     }
     conveyor->_seats[seat] = 1;
@@ -79,7 +85,7 @@ void hostess_guide_first_in_line_customer_to_conveyor_seat(int seat) {
     print_conveyor_belt(conveyor);
 }
 
-void* hostess_run(void* arg) {
+void* hostess_run() {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO HOSTESS.
         NOTAS:
@@ -92,7 +98,7 @@ void* hostess_run(void* arg) {
     */
     virtual_clock_t* virtual_clock = globals_get_virtual_clock();
     queue_t* queue = globals_get_queue();
-    hostess_t* self = (hostess_t*)arg;
+
     //int sushi_shop_fechado = FALSE;
 
     //ALTERAÇÃO: antes (while (sushi_shop_fechado == FALSE))
@@ -104,14 +110,13 @@ void* hostess_run(void* arg) {
         msleep(3000 / virtual_clock->clock_speed_multiplier);  // Não remova esse sleep!
     }
 
-    printf("Hostess run\n");
+    // obs: hostess precisaria zerar a fila de espera quando acabar o tempo
 
-    //obs: hostess precisaria zerar a fila de espera quando acabar o tempo
-
+    // a função queue_finalize() está apresentando erros quando a 
+    // fila não está vazia, por essa razão foram executados estes "queue_remove()"
+    // antes de finalizá-la
     while (queue_remove(queue) != NULL) {};
     queue_finalize(queue);
-
-    printf("Hostess run: queue finalizada\n");
 
     pthread_exit(NULL);
 }
@@ -123,7 +128,7 @@ hostess_t* hostess_init() {
         fprintf(stdout, RED "[ERROR] Bad malloc() at `hostess_t* hostess_init()`.\n" NO_COLOR);
         exit(EXIT_FAILURE);
     }
-    pthread_create(&self->thread, NULL, hostess_run, (void*)self);
+    pthread_create(&self->thread, NULL, hostess_run, NULL);
     return self;
 }
 
@@ -134,7 +139,7 @@ void hostess_finalize(hostess_t* self) {
     // Alteração: Adicionado print da esteira
     pthread_join(self->thread, NULL);
     print_virtual_time(globals_get_virtual_clock());
-    fprintf(stdout, GREEN "[INFO]" NO_COLOR "O Hostess está indo embora!\n");
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " O Hostess está indo embora!\n");
     print_conveyor_belt(conveyor);
     free(self);
 }

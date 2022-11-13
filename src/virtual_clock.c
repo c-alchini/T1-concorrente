@@ -18,7 +18,6 @@ void* virtual_clock_run(void* arg) {
         self->current_time += 1;
         msleep(1000 / self->clock_speed_multiplier);
     }
-    printf("thread conveyor run: exit\n");
 
     pthread_exit(NULL);
 }
@@ -41,7 +40,7 @@ virtual_clock_t* virtual_clock_init(config_t* config) {
 void virtual_clock_finalize(virtual_clock_t* self) {
     /* NÃO PRECISA ALTERAR ESSA FUNÇÃO */
     pthread_join(self->thread, NULL);
-    printf("Virtual Clock: finalizado\n");
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Desligando Relógio...\n");
     free(self);
 }
 
