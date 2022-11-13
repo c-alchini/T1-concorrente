@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     hostess_t* hostess = hostess_init();
 
     /* Join threads and free used memory */
-    // Espera hotess finalizar
+    // Espera hostess finalizar
     hostess_finalize(hostess);
 
     // Espera chef finalizar

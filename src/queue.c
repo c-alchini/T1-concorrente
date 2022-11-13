@@ -79,6 +79,7 @@ void queue_finalize(queue_t* self) {
         customer_finalize(item->_customer);
         free(item);
     }
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " A fila de clientes foi esvaziada.\n");
     pthread_join(self->thread, NULL);
     free(self);
 }

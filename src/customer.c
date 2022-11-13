@@ -29,11 +29,16 @@ void* customer_run(void* arg) {
     customer_t* self = (customer_t*)arg;
     /* INSIRA SUA LÓGICA AQUI */
 
-    // Espera ser colocado em um assento: self->_seat_position != -1
-    while (self->_seat_position == -1) {};
-
     conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
     virtual_clock_t* global_clock = globals_get_virtual_clock();
+
+    // Espera ser colocado em um assento: self->_seat_position != -1
+    // caso ele nao tenha saído da fila e o restaurante feche: libera a thread.
+    while (self->_seat_position == -1) {
+        if (global_clock->current_time >= global_clock->closing_time) {
+            pthread_exit(NULL);
+        }
+    };
 
 
     // RUAN: Durante o Run, o cliente também precisaria conferir se o restaurante fechou ? Se sim, podemos usar a mesma checagem do Chef e do Hostess
@@ -60,7 +65,8 @@ void* customer_run(void* arg) {
 
     customer_leave(self);
 
-    // pthread_exit(NULL);
+    free(self);
+    pthread_exit(NULL);
 }
 
 void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* conveyor_belt) {
@@ -172,13 +178,10 @@ void customer_leave(customer_t* self) {
 
     // tira o cliente da esteira
     pthread_mutex_lock(&conveyor_belt->_seats_mutex); // -> precisa desse mutex? RUAN: Sim, o hostess poderia alterar o valor do seat do conveyor caso não tivesse mutex
-    print_virtual_time(globals_get_virtual_clock());
-    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the restaurant!\n", self->_id);
+    // print_virtual_time(globals_get_virtual_clock());
+    // fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the conveyor seats!\n", self->_id);
     conveyor_belt->_seats[self->_seat_position] = -1;
     pthread_mutex_unlock(&conveyor_belt->_seats_mutex);
-
-    // cliente vai embora
-    customer_finalize(self);
 }
 
 customer_t* customer_init() {

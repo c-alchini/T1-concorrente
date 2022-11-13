@@ -69,9 +69,10 @@ void hostess_guide_first_in_line_customer_to_conveyor_seat(int seat) {
     pthread_mutex_lock(&conveyor->_seats_mutex);
     if (virtual_clock->current_time >= virtual_clock->closing_time) {
         // caso o restaurante feche:
-        // - alterar o "seat" do cliente para ele nao ficar em loop infinito (ele vai embora sozinho)
+        // - liberar a memoria e a thread do cliente que está sendo direcionado pelo hostess
         // - liberar mutex e retornar desta funcao
-        customer->_seat_position = seat;
+        pthread_join(customer->thread, NULL);
+        free(customer);
         pthread_mutex_unlock(&conveyor->_seats_mutex);
         return;
     }
@@ -111,11 +112,6 @@ void* hostess_run() {
     }
 
     // obs: hostess precisaria zerar a fila de espera quando acabar o tempo
-
-    // a função queue_finalize() está apresentando erros quando a 
-    // fila não está vazia, por essa razão foram executados estes "queue_remove()"
-    // antes de finalizá-la
-    while (queue_remove(queue) != NULL) {};
     queue_finalize(queue);
 
     pthread_exit(NULL);
@@ -138,8 +134,7 @@ void hostess_finalize(hostess_t* self) {
 
     // Alteração: Adicionado print da esteira
     pthread_join(self->thread, NULL);
-    print_virtual_time(globals_get_virtual_clock());
-    fprintf(stdout, GREEN "[INFO]" NO_COLOR " O Hostess está indo embora!\n");
     print_conveyor_belt(conveyor);
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " O Hostess está indo embora!\n");
     free(self);
 }
