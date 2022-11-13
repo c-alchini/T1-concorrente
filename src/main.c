@@ -9,7 +9,7 @@
 #include "globals.h"
 
 
-int main (int argc, char** argv) {
+int main(int argc, char** argv) {
     /* Read command line options */
     config_t config = parse(argc, argv);
 
@@ -34,7 +34,9 @@ int main (int argc, char** argv) {
     /* Join threads and free used memory */
     hostess_finalize(hostess);
     sushi_chef_finalize(sushi_chef);
+
     globals_finalize();
+    printf("fim da main\n");
 
     return EXIT_SUCCESS;
 }

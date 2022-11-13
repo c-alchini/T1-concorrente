@@ -2,6 +2,11 @@
 
 #include "globals.h"
 
+//**********************************************************************************
+//PARA FAZER:
+//Implementar as variáveis globais
+// - Alguma ideia como compartilhar essas variáveis desse arquivo com os outros?
+//**********************************************************************************
 
 /*
     VOCÊ DEVE CRIAR VARIÁVEIS GLOBAIS PARA ARMAZENAR DADOS SOBRE A SIMULAÇÃO.
