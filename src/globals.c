@@ -2,6 +2,11 @@
 
 #include "globals.h"
 
+//**********************************************************************************
+//PARA FAZER:
+//Implementar as variáveis globais
+// - Alguma ideia como compartilhar essas variáveis desse arquivo com os outros?
+//**********************************************************************************
 
 /*
     VOCÊ DEVE CRIAR VARIÁVEIS GLOBAIS PARA ARMAZENAR DADOS SOBRE A SIMULAÇÃO.
@@ -43,10 +48,10 @@ queue_t* globals_get_queue() {
 
 /**
  * @brief Finaliza todas as variáveis globais.
- * Se criar alguma variável global que faça uso de mallocs, lembre-se sempre 
+ * Se criar alguma variável global que faça uso de mallocs, lembre-se sempe 
  * de usar o free dentro dessa função.
  */
 void globals_finalize() {
-    virtual_clock_finalize(global_virtual_clock);
     conveyor_belt_finalize(global_conveyor_belt);
+    virtual_clock_finalize(global_virtual_clock);
 }

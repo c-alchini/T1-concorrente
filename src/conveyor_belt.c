@@ -11,7 +11,10 @@ void* conveyor_belt_run(void* arg) {
     /* NÃO PRECISA ALTERAR ESSA FUNÇÃO */
     conveyor_belt_t* self = (conveyor_belt_t*)arg;
     virtual_clock_t* virtual_clock = globals_get_virtual_clock();
-    while (TRUE) {
+
+    //ALTERAÇÃO: ANTES(while(TRUE)). Conveyor agora para quando fechar o restaurante
+    // virtual_clock -> current_time < virtual_clock -> closing_time
+    while (virtual_clock->current_time < virtual_clock->closing_time) {
         msleep(CONVEYOR_IDLE_PERIOD / virtual_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Conveyor belt started moving...\n");
@@ -59,6 +62,9 @@ void conveyor_belt_finalize(conveyor_belt_t* self) {
     pthread_join(self->thread, NULL);
     pthread_mutex_destroy(&self->_seats_mutex);
     pthread_mutex_destroy(&self->_food_slots_mutex);
+    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Desligando Conveyor...\n");
+    free(self->_seats);
+    free(self->_food_slots);
     free(self);
 }
 
@@ -114,9 +120,6 @@ void print_conveyor_belt(conveyor_belt_t* self) {
             break;
         case 1:
             fprintf(stdout, NO_COLOR "%s, ", CUSTOMER);
-            break;
-        case 2: // ALTERAR: excluir
-            fprintf(stdout, NO_COLOR "%s, ", EMPTY_SLOT);
             break;
         default:
             fprintf(stdout, RED "[ERROR] Invalid seat state code in the Conveyor Belt.\n" NO_COLOR);

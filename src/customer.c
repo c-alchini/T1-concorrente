@@ -5,6 +5,11 @@
 #include "customer.h"
 #include "globals.h"
 
+//********************************************************************************************************************************************************
+//PARA FAZER:
+// computar a variável global "comidas consumidas" na função eat_food()
+// quando o cliente sair, computar a variável "quantidade de clientes satisfeitos" (Precisariamos checar se a lista de desejos dos clientes seria zerada)
+//********************************************************************************************************************************************************
 
 void* customer_run(void* arg) {
     /*
@@ -24,11 +29,19 @@ void* customer_run(void* arg) {
     customer_t* self = (customer_t*)arg;
     /* INSIRA SUA LÓGICA AQUI */
 
-    // Espera ser colocado em um assento: self->_seat_position != -1
-    while (self->_seat_position == -1) {};
-
     conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
+    virtual_clock_t* global_clock = globals_get_virtual_clock();
 
+    // Espera ser colocado em um assento: self->_seat_position != -1
+    // caso ele nao tenha saído da fila e o restaurante feche: libera a thread.
+    while (self->_seat_position == -1) {
+        if (global_clock->current_time >= global_clock->closing_time) {
+            pthread_exit(NULL);
+        }
+    };
+
+
+    // RUAN: Durante o Run, o cliente também precisaria conferir se o restaurante fechou ? Se sim, podemos usar a mesma checagem do Chef e do Hostess
     int stop = 0;
     while (!stop) {
         // Confere se a lista de desejos está vazia
@@ -40,16 +53,20 @@ void* customer_run(void* arg) {
             }
         }
 
+        // confere se o restaurante fechou
+        if (global_clock->current_time >= global_clock->closing_time) {
+            break;
+        }
+
         // Espera a esteira parar: assim que liberar o mutex
         pthread_mutex_lock(&conveyor_belt->_food_slots_mutex);
         customer_pick_food(self, self->_seat_position, conveyor_belt);
-        // msleep(3000); // por enquanto, favorece a dinamica do programa
-
     }
-    printf("\n *********** Cliente %d terminou de comer *********** \n", self->_id);
+
     customer_leave(self);
 
-    //pthread_exit(NULL);
+    free(self);
+    pthread_exit(NULL);
 }
 
 void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* conveyor_belt) {
@@ -103,7 +120,7 @@ void customer_eat(customer_t* self, enum menu_item food) {
 
     // decrementa item da lista de desejos
     self->_wishes[food] -= 1;
-    printf("Cliente %d, wishes: %d, %d, %d, %d, %d\n", self->_id, self->_wishes[0], self->_wishes[1], self->_wishes[2], self->_wishes[3], self->_wishes[4]);
+    // printf("Cliente %d, wishes: %d, %d, %d, %d, %d\n", self->_id, self->_wishes[0], self->_wishes[1], self->_wishes[2], self->_wishes[3], self->_wishes[4]);
 
     /* NÃO EDITE O CONTEÚDO ABAIXO */
     virtual_clock_t* global_clock = globals_get_virtual_clock();
@@ -156,15 +173,15 @@ void customer_leave(customer_t* self) {
         1.  ESSA FUNÇÃO DEVERÁ REMOVER O CLIENTE DO ASSENTO DO CONVEYOR_BELT GLOBAL QUANDO EXECUTADA.
     */
     conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
+    virtual_clock_t* global_clock = globals_get_virtual_clock();
+
 
     // tira o cliente da esteira
-    pthread_mutex_lock(&conveyor_belt->_seats_mutex); // -> precisa desse mutex?
+    pthread_mutex_lock(&conveyor_belt->_seats_mutex); // -> precisa desse mutex? RUAN: Sim, o hostess poderia alterar o valor do seat do conveyor caso não tivesse mutex
+    // print_virtual_time(globals_get_virtual_clock());
+    // fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the conveyor seats!\n", self->_id);
     conveyor_belt->_seats[self->_seat_position] = -1;
     pthread_mutex_unlock(&conveyor_belt->_seats_mutex);
-
-    // cliente vai embora
-    fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the restaurant!\n", self->_id);
-    customer_finalize(self);
 }
 
 customer_t* customer_init() {

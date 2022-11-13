@@ -17,6 +17,6 @@ void hostess_guide_first_in_line_customer_to_conveyor_seat(int seat);
 
 hostess_t* hostess_init();
 void* hostess_run();
-void hostess_finalize(hostess_t *self);
+void hostess_finalize(hostess_t* self);
 
 #endif  // __HOSTESS_H_

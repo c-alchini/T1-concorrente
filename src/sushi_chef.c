@@ -5,6 +5,12 @@
 #include "globals.h"
 #include "menu.h"
 
+//*************************************************************************************************
+//PARA FAZER:
+// computar a variável global "comidas produzidas" na função prepare_food()
+// Criar mais threads "chefs" com base na configuração de entrada, inicialmente só é criado 1 chef
+//*************************************************************************************************
+
 
 void* sushi_chef_run(void* arg) {
     /*
@@ -12,7 +18,7 @@ void* sushi_chef_run(void* arg) {
         NOTAS:
         1.  O SUSHI CHEF SÓ PODE COMEÇAR A COZINHAR DEPOIS QUE ESTIVER POSICIONADO NA ESTEIRA.
         2.  ESSA FUNÇÃO JÁ POSSUI A LÓGICA PARA QUE O SUSHI CHEF COMECE A PREPARAR PRATOS ALEATÓRIOS.
-        3.  VOCÊ DEVE ADICIONAR A LÓGICA PARA QUE O SUSHI CHEF PARE DE ADICIONAR PRATOS E SAIA A 
+        3.  VOCÊ DEVE ADICIONAR A LÓGICA PARA QUE O SUSHI CHEF PARE DE ADICIONAR PRA 
             ESTEIRA QUANDO O SUSHI SHOP FECHAR (VEJA O ARQUIVO `virtual_clock.c`).
         4.  CUIDADO COM ERROS DE CONCORRÊNCIA.
     */
@@ -20,11 +26,15 @@ void* sushi_chef_run(void* arg) {
     virtual_clock_t* global_clock = globals_get_virtual_clock();
 
     sushi_chef_seat(self);
-    while (TRUE) {
+    //ALTERAÇÃO: antes (while(TRUE)) sai do loop quando fechar
+    while (global_clock->current_time < global_clock->closing_time) {
         enum menu_item next_dish = rand() % 5;
         sushi_chef_prepare_food(self, next_dish);
         sushi_chef_place_food(self, next_dish);
     }
+
+    //ALTERAÇÃO: sai da esteira
+    sushi_chef_leave(self);
 
     pthread_exit(NULL);
 }
@@ -70,6 +80,7 @@ void sushi_chef_seat(sushi_chef_t* self) {
     // }
 }
 
+//ALTERAÇÃO: saída do assento 0 com mutex
 void sushi_chef_leave(sushi_chef_t* self) {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO SUSHI CHEF.
@@ -81,6 +92,10 @@ void sushi_chef_leave(sushi_chef_t* self) {
     conveyor_belt_t* conveyor = globals_get_conveyor_belt();
 
     /* INSIRA SUA LÓGICA AQUI */
+
+    pthread_mutex_lock(&conveyor->_seats_mutex);
+    conveyor->_seats[0] = -1;
+    pthread_mutex_unlock(&conveyor->_seats_mutex);
 
     print_virtual_time(globals_get_virtual_clock());
     fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d seated at conveyor->_seats[%d] stopped cooking and left the shop!\n", self->_id, self->_seat_position);
@@ -99,6 +114,8 @@ void sushi_chef_place_food(sushi_chef_t* self, enum menu_item dish) {
         5.  NÃO REMOVA OS PRINTS
     */
     conveyor_belt_t* conveyor_belt = globals_get_conveyor_belt();
+    virtual_clock_t* global_clock = globals_get_virtual_clock();
+
     print_virtual_time(globals_get_virtual_clock());
     fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d wants to place %u at conveyor->_foot_slot[%d]!\n", self->_id, dish, self->_seat_position);
 
@@ -106,6 +123,10 @@ void sushi_chef_place_food(sushi_chef_t* self, enum menu_item dish) {
 
     // Espera o mutex ser liberado, indicando que a esteira não está rodando
     while (TRUE) {
+        if (global_clock->current_time >= global_clock->closing_time) {
+            // caso o tempo tenha acabado, nao coloca o prato na esteira
+            return;
+        }
         pthread_mutex_lock(&conveyor_belt->_food_slots_mutex);
         if (conveyor_belt->_food_slots[self->_seat_position] == -1) {
             conveyor_belt->_food_slots[self->_seat_position] = dish;
