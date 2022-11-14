@@ -58,5 +58,13 @@ int main(int argc, char** argv) {
 
     fprintf(stdout, BLUE "[INFO]" NO_COLOR " Restaurante encerrado.\n");
 
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Clientes satisfeitos: %d.\n", globals_get_satisfied());
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Quantidade de Sushi consumida: %d.\n", globals_get_sushi_consumed());
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Quantidade de Sushi preparada: %d.\n", globals_get_food_prepared(0));
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Quantidade de Dango preparada: %d.\n", globals_get_food_prepared(1));
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Quantidade de Ramen preparada: %d.\n", globals_get_food_prepared(2));
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Quantidade de Onigiri preparada: %d.\n", globals_get_food_prepared(3));
+    fprintf(stdout, BLUE "[INFO]" NO_COLOR " Quantidade de Tofu preparada: %d.\n", globals_get_food_prepared(4));
+
     return EXIT_SUCCESS;
 }

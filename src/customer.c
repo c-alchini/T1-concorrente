@@ -131,6 +131,7 @@ void customer_eat(customer_t* self, enum menu_item food) {
         msleep(SUSHI_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d finished eating Sushi!\n", self->_id);
+        globals_increment_sushi_consumed();
         break;
     case Dango:
         print_virtual_time(globals_get_virtual_clock());
@@ -182,6 +183,15 @@ void customer_leave(customer_t* self) {
     // fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the conveyor seats!\n", self->_id);
     conveyor_belt->_seats[self->_seat_position] = -1;
     pthread_mutex_unlock(&conveyor_belt->_seats_mutex);
+
+    //LÓGICA DA GLOBAL:
+    //Se o cliente sair antes do horário de fechamento (ou seja, antes de instantaneamente se retirar quando o tempo acabar) ele computará como satisfeito
+    if (global_clock->current_time < global_clock->closing_time) {
+        //print deixado para teste, será removido e a impressão da global ocorrerá no fim do programa
+        //fprintf(stdout, GREEN "[INFO]" NO_COLOR " SATISFIED: %d\n", satisfied);
+        //como são várias threads de customer, capaz que seja necessário um mutex para a escrita na global
+        globals_increment_satisfied();
+    }
 }
 
 customer_t* customer_init() {

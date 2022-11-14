@@ -18,7 +18,7 @@ void* sushi_chef_run(void* arg) {
         NOTAS:
         1.  O SUSHI CHEF SÓ PODE COMEÇAR A COZINHAR DEPOIS QUE ESTIVER POSICIONADO NA ESTEIRA.
         2.  ESSA FUNÇÃO JÁ POSSUI A LÓGICA PARA QUE O SUSHI CHEF COMECE A PREPARAR PRATOS ALEATÓRIOS.
-        3.  VOCÊ DEVE ADICIONAR A LÓGICA PARA QUE O SUSHI CHEF PARE DE ADICIONAR PRA 
+        3.  VOCÊ DEVE ADICIONAR A LÓGICA PARA QUE O SUSHI CHEF PARE DE ADICIONARA 
             ESTEIRA QUANDO O SUSHI SHOP FECHAR (VEJA O ARQUIVO `virtual_clock.c`).
         4.  CUIDADO COM ERROS DE CONCORRÊNCIA.
     */
@@ -152,6 +152,7 @@ void sushi_chef_prepare_food(sushi_chef_t* self, enum menu_item menu_item) {
         msleep(SUSHI_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d finished preparing Sushi!\n", self->_id);
+        globals_increment_food_prepared(menu_item);
         break;
     case Dango:
         print_virtual_time(globals_get_virtual_clock());
@@ -159,6 +160,7 @@ void sushi_chef_prepare_food(sushi_chef_t* self, enum menu_item menu_item) {
         msleep(DANGO_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d finished preparing Dango!\n", self->_id);
+        globals_increment_food_prepared(menu_item);
         break;
     case Ramen:
         print_virtual_time(globals_get_virtual_clock());
@@ -166,6 +168,7 @@ void sushi_chef_prepare_food(sushi_chef_t* self, enum menu_item menu_item) {
         msleep(RAMEN_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d finished preparing Ramen!\n", self->_id);
+        globals_increment_food_prepared(menu_item);
         break;
     case Onigiri:
         print_virtual_time(globals_get_virtual_clock());
@@ -173,6 +176,7 @@ void sushi_chef_prepare_food(sushi_chef_t* self, enum menu_item menu_item) {
         msleep(ONIGIRI_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d finished preparing Onigiri!\n", self->_id);
+        globals_increment_food_prepared(menu_item);
         break;
     case Tofu:
         print_virtual_time(globals_get_virtual_clock());
@@ -180,6 +184,7 @@ void sushi_chef_prepare_food(sushi_chef_t* self, enum menu_item menu_item) {
         msleep(TOFU_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Sushi Chef %d finished preparing Tofu!\n", self->_id);
+        globals_increment_food_prepared(menu_item);
         break;
     default:
         fprintf(stdout, RED "[ERROR] Invalid menu_item variant passed to `sushi_chef_prepare_food()`.\n" NO_COLOR);
