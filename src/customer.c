@@ -34,8 +34,10 @@ void* customer_run(void* arg) {
         }
     };
 
+    // flag usada para conferir se a lista de desejos está vazia
     int stop = 0;
-    while (!stop) {
+
+    while (TRUE) {
         // Confere se a lista de desejos está vazia
         stop = 1;
         for (int i = 0; i < 5; i++) {
@@ -43,6 +45,13 @@ void* customer_run(void* arg) {
                 stop = 0;
                 break;
             }
+        }
+
+        // Caso a lista de desejos esteja vazia, incrementa a lista
+        // de clientes satisfeitos e sai do loop
+        if (stop) {
+            globals_increment_satisfied();
+            break;
         }
 
         // confere se o restaurante fechou
@@ -177,9 +186,9 @@ void customer_leave(customer_t* self) {
 
     //LÓGICA DA GLOBAL:
     //Se o cliente sair antes do horário de fechamento (ou seja, antes de instantaneamente se retirar quando o tempo acabar) ele computará como satisfeito
-    if (global_clock->current_time < global_clock->closing_time) {
-        globals_increment_satisfied();
-    }
+    // if (global_clock->current_time < global_clock->closing_time) {
+    //     globals_increment_satisfied();
+    // }
 }
 
 customer_t* customer_init() {
