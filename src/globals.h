@@ -8,7 +8,7 @@
 #include "menu.h"
 
 
-/* Codigo para soma de comidas preparadas */
+/* Soma comidas preparadas */
 /**
  * @brief Estrutura encapsulando a quantidade de comidas preparadas.
 */
@@ -34,10 +34,11 @@ extern void globals_increment_food_prepared(enum menu_item food);
  */
 extern int globals_get_food_prepared(enum menu_item food);
 
-/* Fim do codigo para soma de comidas preparadas */
+/* Soma de comidas preparadas */
 
 
 
+//SUSHI****************************************************************************
 /**
  * @brief Estrutura encapsulando a quantidade de sushi consumido.
 */
@@ -57,17 +58,129 @@ extern void globals_increment_sushi_consumed();
  * @return int
  */
 extern int globals_get_sushi_consumed();
+//SUSHI****************************************************************************
+
+
+
+//DANGO============================================================================
+/**
+ * @brief Estrutura encapsulando a quantidade de dango consumido.
+*/
+struct dango_consumed {
+  int quant;
+  pthread_mutex_t dango_consumed_mutex;
+};
+
+/**
+ * @brief Incrementa a quantidade de dangos consumidos (de modo global)
+ */
+extern void globals_increment_dango_consumed();
+
+/**
+ * @brief Retorna a quantidade de dango consumido
+ *
+ * @return int
+ */
+extern int globals_get_dango_consumed();
+//DANGO============================================================================
+
+
+
+//RAMEN****************************************************************************
+/**
+ * @brief Estrutura encapsulando a quantidade de ramen consumido.
+*/
+struct ramen_consumed {
+  int quant;
+  pthread_mutex_t ramen_consumed_mutex;
+};
+
+/**
+ * @brief Incrementa a quantidade de ramens consumidos (de modo global)
+ */
+extern void globals_increment_ramen_consumed();
+
+/**
+ * @brief Retorna a quantidade de ramen consumido
+ *
+ * @return int
+ */
+extern int globals_get_ramen_consumed();
+//RAMEN****************************************************************************
+
+
+
+//ONIGIRI============================================================================
+/**
+ * @brief Estrutura encapsulando a quantidade de onigiri consumido.
+*/
+struct onigiri_consumed {
+  int quant;
+  pthread_mutex_t onigiri_consumed_mutex;
+};
+
+/**
+ * @brief Incrementa a quantidade de onigiri consumidos (de modo global)
+ */
+extern void globals_increment_onigiri_consumed();
+
+/**
+ * @brief Retorna a quantidade de onigiri consumido
+ *
+ * @return int
+ */
+extern int globals_get_onigiri_consumed();
+//ONIGIRI============================================================================
+
+
+
+//TOFU****************************************************************************
+/**
+ * @brief Estrutura encapsulando a quantidade de tofu consumido.
+*/
+struct tofu_consumed {
+  int quant;
+  pthread_mutex_t tofu_consumed_mutex;
+};
+
+/**
+ * @brief Incrementa a quantidade de sushis consumidos (de modo global)
+ */
+extern void globals_increment_tofu_consumed();
+
+/**
+ * @brief Retorna a quantidade de tofu consumido
+ *
+ * @return int
+ */
+extern int globals_get_tofu_consumed();
+//TOFU****************************************************************************
+
+
 
 /**
  * @brief Incrementa a quantidade de clientes satisfeitos
  */
 extern void globals_increment_satisfied();
 
-
-
-// estas funcoes ja estao declaradas no codigo do ruan
+/**
+ * @brief Retorna satisfied
+ *
+ * @return int
+ */
 extern int globals_get_satisfied();
-extern void globals_write_satisfied(int satisfied);
+
+/**
+ * @brief Inicializa mutexes das globais
+ *
+ */
+extern void init_mutex_();
+
+/**
+ * @brief Finaliza mutexes das globais
+ *
+ */
+extern void destroy_mutex_();
 
 
 // funcoes originais

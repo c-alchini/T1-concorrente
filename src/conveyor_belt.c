@@ -13,7 +13,6 @@ void* conveyor_belt_run(void* arg) {
     virtual_clock_t* virtual_clock = globals_get_virtual_clock();
 
     //ALTERAÇÃO: ANTES(while(TRUE)). Conveyor agora para quando fechar o restaurante
-    // virtual_clock -> current_time < virtual_clock -> closing_time
     while (virtual_clock->current_time < virtual_clock->closing_time) {
         msleep(CONVEYOR_IDLE_PERIOD / virtual_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());

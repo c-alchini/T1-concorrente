@@ -2,12 +2,6 @@
 
 #include "globals.h"
 
-//**********************************************************************************
-//PARA FAZER:
-//Implementar as variáveis globais
-// - Alguma ideia como compartilhar essas variáveis desse arquivo com os outros?
-//**********************************************************************************
-
 /*
     VOCÊ DEVE CRIAR VARIÁVEIS GLOBAIS PARA ARMAZENAR DADOS SOBRE A SIMULAÇÃO.
     NOTAS:
@@ -18,7 +12,7 @@
     2.  SIGA OS EXEMPLOS DE VARIÁVEIS GLOBAIS JÁ EXISTENTES NESSE ARQUIVO PARA CRIAR AS NOVAS.
 */
 
-/* Codigo para soma de comidas preparadas */
+// Comidas Preparadas==========================================
 struct food_prepared global_food_prepared = { 0, 0, 0, 0, 0 };
 
 void globals_increment_food_prepared(enum menu_item food) {
@@ -61,10 +55,11 @@ int globals_get_food_prepared(enum menu_item food) {
         exit(EXIT_FAILURE);
     }
 }
+// Comidas Preparadas==========================================
 
-/* Fim do Codigo para soma de comidas preparadas */
 
 
+//SUSHI*******************************************************
 struct sushi_consumed global_sushi_cons = { 0 };
 
 void globals_increment_sushi_consumed() {
@@ -76,18 +71,72 @@ void globals_increment_sushi_consumed() {
 int globals_get_sushi_consumed() {
     return global_sushi_cons.quant;
 }
+//SUSHI*******************************************************
 
-virtual_clock_t* global_virtual_clock = NULL;
-conveyor_belt_t* global_conveyor_belt = NULL;
-queue_t* global_queue = NULL;
 
-int global_produced = 0;
-int global_consumed = 0;
-int global_satisfied = 0;
+//DANGO*******************************************************
+struct dango_consumed global_dango_cons = { 0 };
 
-//declaração de locks para incrementação ordenada das globais
-pthread_mutex_t consumed_lock;
+void globals_increment_dango_consumed() {
+    pthread_mutex_lock(&global_dango_cons.dango_consumed_mutex);
+    global_dango_cons.quant++;
+    pthread_mutex_unlock(&global_dango_cons.dango_consumed_mutex);
+}
+
+int globals_get_dango_consumed() {
+    return global_dango_cons.quant;
+}
+//DANGO*******************************************************
+
+
+//RAMEN*******************************************************
+
+struct ramen_consumed global_ramen_cons = { 0 };
+
+void globals_increment_ramen_consumed() {
+    pthread_mutex_lock(&global_ramen_cons.ramen_consumed_mutex);
+    global_ramen_cons.quant++;
+    pthread_mutex_unlock(&global_ramen_cons.ramen_consumed_mutex);
+}
+
+int globals_get_ramen_consumed() {
+    return global_ramen_cons.quant;
+}
+//RAMEN*******************************************************
+
+//ONIGIRI*******************************************************
+struct onigiri_consumed global_onigiri_cons = { 0 };
+
+void globals_increment_onigiri_consumed() {
+    pthread_mutex_lock(&global_onigiri_cons.onigiri_consumed_mutex);
+    global_onigiri_cons.quant++;
+    pthread_mutex_unlock(&global_onigiri_cons.onigiri_consumed_mutex);
+}
+
+int globals_get_onigiri_consumed() {
+    return global_onigiri_cons.quant;
+}
+//ONIGIRI*******************************************************
+
+//TOFU*******************************************************
+
+struct tofu_consumed global_tofu_cons = { 0 };
+
+void globals_increment_tofu_consumed() {
+    pthread_mutex_lock(&global_tofu_cons.tofu_consumed_mutex);
+    global_tofu_cons.quant++;
+    pthread_mutex_unlock(&global_tofu_cons.tofu_consumed_mutex);
+}
+
+int globals_get_tofu_consumed() {
+    return global_tofu_cons.quant;
+}
+//TOFU*******************************************************
+
+
+// Satisfied Clients=========================================
 pthread_mutex_t satisfied_lock;
+int global_satisfied = 0;
 
 void globals_increment_satisfied() {
     pthread_mutex_lock(&satisfied_lock);
@@ -95,31 +144,16 @@ void globals_increment_satisfied() {
     pthread_mutex_unlock(&satisfied_lock);
 }
 
-
-int globals_get_produced() {
-    return global_produced;
-}
-
-void globals_write_produced(int produced) {
-    global_produced = produced;
-}
-
-int globals_get_consumed() {
-    return global_consumed;
-}
-
-void globals_write_consumed(int consumed) {
-    global_consumed = consumed;
-}
-
 int globals_get_satisfied() {
     return global_satisfied;
 }
+// Satisfied Clients=========================================
 
-void globals_write_satisfied(int satisfied) {
-    global_satisfied = satisfied;
-}
 
+// Globais originais
+virtual_clock_t* global_virtual_clock = NULL;
+conveyor_belt_t* global_conveyor_belt = NULL;
+queue_t* global_queue = NULL;
 
 void globals_set_virtual_clock(virtual_clock_t* virtual_clock) {
     global_virtual_clock = virtual_clock;
@@ -146,20 +180,35 @@ queue_t* globals_get_queue() {
 }
 
 /**
+ * @brief Inicializa os mutexes usados.
+ */
+void init_mutex_() {
+    pthread_mutex_init(&satisfied_lock, NULL);
+    pthread_mutex_init(&global_sushi_cons.sushi_consumed_mutex, NULL);
+    pthread_mutex_init(&global_dango_cons.dango_consumed_mutex, NULL);
+    pthread_mutex_init(&global_ramen_cons.ramen_consumed_mutex, NULL);
+    pthread_mutex_init(&global_onigiri_cons.onigiri_consumed_mutex, NULL);
+    pthread_mutex_init(&global_tofu_cons.tofu_consumed_mutex, NULL);
+}
+
+/**
+ * @brief Destrói os mutexes usados.
+ */
+void destroy_mutex_() {
+    pthread_mutex_destroy(&satisfied_lock);
+    pthread_mutex_destroy(&global_sushi_cons.sushi_consumed_mutex);
+    pthread_mutex_destroy(&global_dango_cons.dango_consumed_mutex);
+    pthread_mutex_destroy(&global_ramen_cons.ramen_consumed_mutex);
+    pthread_mutex_destroy(&global_onigiri_cons.onigiri_consumed_mutex);
+    pthread_mutex_destroy(&global_tofu_cons.tofu_consumed_mutex);
+}
+
+/**
  * @brief Finaliza todas as variáveis globais.
- * Se criar alguma variável global que faça usoe 
+ * Se criar alguma variável global que façae 
  * de usar o free dentro dessa função.
  */
 void globals_finalize() {
     conveyor_belt_finalize(global_conveyor_belt);
     virtual_clock_finalize(global_virtual_clock);
 }
-
-//   int dango = 0;
-//   pthread_mutex_t dango_mutex;
-//   int ramen;
-//   pthread_mutex_t ramen_mutex;
-//   int onigiri;
-//   pthread_mutex_t onigiri_mutex;
-//   int tofu;
-//   pthread_mutex_t tofu_mutex;

@@ -40,7 +40,6 @@ int hostess_check_for_a_free_conveyor_seat() {
     }
 }
 
-// ALTERADO: adicionado mutex
 void hostess_guide_first_in_line_customer_to_conveyor_seat(int seat) {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO HOSTESS.
@@ -65,7 +64,6 @@ void hostess_guide_first_in_line_customer_to_conveyor_seat(int seat) {
     // A verificação foi colocada dentro do mutex para o caso em que esta thread
     // estivesse na fila de espera do mutex quando o restaurante fosse fechado.
 
-    // precisa desse mutex? (se for apenas o hostess que altera os seats talvez não precise)
     pthread_mutex_lock(&conveyor->_seats_mutex);
     if (virtual_clock->current_time >= virtual_clock->closing_time) {
         // caso o restaurante feche:
@@ -101,7 +99,6 @@ void* hostess_run() {
     queue_t* queue = globals_get_queue();
 
     //int sushi_shop_fechado = FALSE;
-
     //ALTERAÇÃO: antes (while (sushi_shop_fechado == FALSE))
     while (virtual_clock->current_time < virtual_clock->closing_time) {  // Adicione a lógica para que o Hostess realize o fechamento do Sushi Shop!
         if (queue->_length > 0) {

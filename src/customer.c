@@ -5,12 +5,6 @@
 #include "customer.h"
 #include "globals.h"
 
-//********************************************************************************************************************************************************
-//PARA FAZER:
-// computar a variável global "comidas consumidas" na função eat_food()
-// quando o cliente sair, computar a variável "quantidade de clientes satisfeitos" (Precisariamos checar se a lista de desejos dos clientes seria zerada)
-//********************************************************************************************************************************************************
-
 void* customer_run(void* arg) {
     /*
         MODIFIQUE ESSA FUNÇÃO PARA GARANTIR O COMPORTAMENTO CORRETO E EFICAZ DO CLIENTE.
@@ -40,8 +34,6 @@ void* customer_run(void* arg) {
         }
     };
 
-
-    // RUAN: Durante o Run, o cliente também precisaria conferir se o restaurante fechou ? Se sim, podemos usar a mesma checagem do Chef e do Hostess
     int stop = 0;
     while (!stop) {
         // Confere se a lista de desejos está vazia
@@ -81,8 +73,6 @@ void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* convey
         5.  NOTE QUE CLIENTES ADJACENTES DISPUTARÃO OS MESMOS PRATOS. CUIDADO COM PROBLEMAS DE SINCRONIZAÇÃO!
     */
 
-    // print_customer(self);
-    // printf("Funcao pick_food(), food_slot = %d\n", food_slot);
     int food = -2;
     for (int i = (food_slot - 1); i <= food_slot + 1; i++) {
         if (i == 0 || i == conveyor_belt->_size) {
@@ -93,7 +83,7 @@ void customer_pick_food(customer_t* self, int food_slot, conveyor_belt_t* convey
         if (food != -1 && self->_wishes[food]) {
             // se houver comida e ela estiver na lista de desejos
             // tirar item da esteira
-            conveyor_belt->_food_slots[i] = -1; // deve-se usar o setter?
+            conveyor_belt->_food_slots[i] = -1;
             // libera o mutex da esteira de comida
             pthread_mutex_unlock(&conveyor_belt->_food_slots_mutex);
             // comer
@@ -120,7 +110,6 @@ void customer_eat(customer_t* self, enum menu_item food) {
 
     // decrementa item da lista de desejos
     self->_wishes[food] -= 1;
-    // printf("Cliente %d, wishes: %d, %d, %d, %d, %d\n", self->_id, self->_wishes[0], self->_wishes[1], self->_wishes[2], self->_wishes[3], self->_wishes[4]);
 
     /* NÃO EDITE O CONTEÚDO ABAIXO */
     virtual_clock_t* global_clock = globals_get_virtual_clock();
@@ -139,6 +128,7 @@ void customer_eat(customer_t* self, enum menu_item food) {
         msleep(DANGO_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d finished eating Dango!\n", self->_id);
+        globals_increment_dango_consumed();
         break;
     case Ramen:
         print_virtual_time(globals_get_virtual_clock());
@@ -146,6 +136,7 @@ void customer_eat(customer_t* self, enum menu_item food) {
         msleep(RAMEN_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d finished eating Ramen!\n", self->_id);
+        globals_increment_ramen_consumed();
         break;
     case Onigiri:
         print_virtual_time(globals_get_virtual_clock());
@@ -153,6 +144,7 @@ void customer_eat(customer_t* self, enum menu_item food) {
         msleep(ONIGIRI_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d finished eating Onigiri!\n", self->_id);
+        globals_increment_onigiri_consumed();
         break;
     case Tofu:
         print_virtual_time(globals_get_virtual_clock());
@@ -160,6 +152,7 @@ void customer_eat(customer_t* self, enum menu_item food) {
         msleep(TOFU_PREP_TIME / global_clock->clock_speed_multiplier);
         print_virtual_time(globals_get_virtual_clock());
         fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d finished eating Tofu!\n", self->_id);
+        globals_increment_tofu_consumed();
         break;
     default:
         fprintf(stdout, RED "[ERROR] Invalid menu_item variant passed to `customer_eat()`.\n" NO_COLOR);
@@ -178,18 +171,13 @@ void customer_leave(customer_t* self) {
 
 
     // tira o cliente da esteira
-    pthread_mutex_lock(&conveyor_belt->_seats_mutex); // -> precisa desse mutex? RUAN: Sim, o hostess poderia alterar o valor do seat do conveyor caso não tivesse mutex
-    // print_virtual_time(globals_get_virtual_clock());
-    // fprintf(stdout, GREEN "[INFO]" NO_COLOR " Customer %d is leaving the conveyor seats!\n", self->_id);
+    pthread_mutex_lock(&conveyor_belt->_seats_mutex);
     conveyor_belt->_seats[self->_seat_position] = -1;
     pthread_mutex_unlock(&conveyor_belt->_seats_mutex);
 
     //LÓGICA DA GLOBAL:
     //Se o cliente sair antes do horário de fechamento (ou seja, antes de instantaneamente se retirar quando o tempo acabar) ele computará como satisfeito
     if (global_clock->current_time < global_clock->closing_time) {
-        //print deixado para teste, será removido e a impressão da global ocorrerá no fim do programa
-        //fprintf(stdout, GREEN "[INFO]" NO_COLOR " SATISFIED: %d\n", satisfied);
-        //como são várias threads de customer, capaz que seja necessário um mutex para a escrita na global
         globals_increment_satisfied();
     }
 }
@@ -203,7 +191,7 @@ customer_t* customer_init() {
     }
     self->_id = rand() % 1000;
     for (int i = 0; i <= 4; i++) {
-        self->_wishes[i] = 1; // alterar: (rand() % 4); -> para testes
+        self->_wishes[i] = (rand() % 4);
     }
     self->_seat_position = -1;
     pthread_create(&self->thread, NULL, customer_run, (void*)self);
